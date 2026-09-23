@@ -1,0 +1,3 @@
+android.hardware.camera.provider@2.4-impl.so
+android.hardware.graphics.composer@2.1-impl.so
+sensors.default.so

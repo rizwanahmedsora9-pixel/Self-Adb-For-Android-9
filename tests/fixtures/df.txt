@@ -1,0 +1,4 @@
+Filesystem       Size  Used Avail Use% Mounted on
+/dev/root        2.9G  2.3G  621M  80% /
+tmpfs            919M  1.1M  918M   1% /dev
+/dev/block/mmcblk0p4  28G  9.4G   18G  35% /data

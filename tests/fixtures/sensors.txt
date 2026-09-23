@@ -1,0 +1,3 @@
+0x00000000) handle=0x00000000 accelerometer
+0x00000001) handle=0x00000002 proximity
+0x00000002) handle=0x00000003 magnetometer

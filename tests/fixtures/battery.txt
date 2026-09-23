@@ -1,0 +1,5 @@
+Current Battery Service state:
+  level: 87
+  health: 2
+  AC powered: false
+  USB powered: true

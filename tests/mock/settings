@@ -1,0 +1,10 @@
+#!/usr/bin/env python3
+"""Mock of Android's `settings` command for tests."""
+import os, sys
+FX = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "fixtures")
+if len(sys.argv) >= 3 and sys.argv[1] == "list":
+    p = os.path.join(FX, "settings_%s.txt" % sys.argv[2])
+    if os.path.exists(p):
+        sys.stdout.write(open(p, encoding="utf-8", errors="replace").read())
+    sys.exit(0)
+sys.exit(0)

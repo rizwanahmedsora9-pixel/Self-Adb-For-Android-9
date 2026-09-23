@@ -1,0 +1,3 @@
+Linux version 4.9.117+ (build@builder) (gcc version 4.9.x 20150123) #1 SMP PREEMPT Tue Aug 6 2019
+Linux localhost 4.9.117+ #1 SMP PREEMPT Tue Aug 6 2019 aarch64
+aarch64

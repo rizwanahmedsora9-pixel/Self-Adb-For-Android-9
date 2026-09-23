@@ -1,0 +1,4 @@
+/sys/devices/system/cpu/cpu0 2000000
+/sys/devices/system/cpu/cpu1 2000000
+/sys/devices/system/cpu/cpu2 2000000
+/sys/devices/system/cpu/cpu3 2000000

@@ -1,0 +1,3 @@
+ro.vndk.version=28
+ro.hardware=mt6761
+ro.board.platform=mt6761
