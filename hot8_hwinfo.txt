@@ -1,0 +1,229 @@
+===== DEVICE PROPS =====
+/system/bin/getprop: invalid option -- a
+
+===== CPU INFO =====
+Processor	: AArch64 Processor rev 4 (aarch64)
+processor	: 0
+BogoMIPS	: 26.00
+Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32
+CPU implementer	: 0x41
+CPU architecture: 8
+CPU variant	: 0x0
+CPU part	: 0xd03
+CPU revision	: 4
+
+processor	: 1
+BogoMIPS	: 26.00
+Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32
+CPU implementer	: 0x41
+CPU architecture: 8
+CPU variant	: 0x0
+CPU part	: 0xd03
+CPU revision	: 4
+
+processor	: 2
+BogoMIPS	: 26.00
+Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32
+CPU implementer	: 0x41
+CPU architecture: 8
+CPU variant	: 0x0
+CPU part	: 0xd03
+CPU revision	: 4
+
+processor	: 3
+BogoMIPS	: 26.00
+Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32
+CPU implementer	: 0x41
+CPU architecture: 8
+CPU variant	: 0x0
+CPU part	: 0xd03
+CPU revision	: 4
+
+processor	: 4
+BogoMIPS	: 26.00
+Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32
+CPU implementer	: 0x41
+CPU architecture: 8
+CPU variant	: 0x0
+CPU part	: 0xd03
+CPU revision	: 4
+
+processor	: 5
+BogoMIPS	: 26.00
+Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32
+CPU implementer	: 0x41
+CPU architecture: 8
+CPU variant	: 0x0
+CPU part	: 0xd03
+CPU revision	: 4
+
+processor	: 6
+BogoMIPS	: 26.00
+Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32
+CPU implementer	: 0x41
+CPU architecture: 8
+CPU variant	: 0x0
+CPU part	: 0xd03
+CPU revision	: 4
+
+processor	: 7
+BogoMIPS	: 26.00
+Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32
+CPU implementer	: 0x41
+CPU architecture: 8
+CPU variant	: 0x0
+CPU part	: 0xd03
+CPU revision	: 4
+
+Hardware	: MT6762V/WB
+
+===== KERNEL VERSION =====
+cat: /proc/version: Permission denied
+Linux localhost 4.9.117+ #2 SMP PREEMPT Sat Oct 5 15:34:30 CST 2019 aarch64 Android
+
+===== PARTITIONS =====
+cat: /proc/partitions: Permission denied
+
+===== BLOCK BY-NAME =====
+ls: cannot access '/dev/block/platform/*/by-name/': Permission denied
+
+===== MOUNTS =====
+/dev/root / ext4 ro,seclabel,relatime,block_validity,delalloc,barrier,user_xattr 0 0
+tmpfs /dev tmpfs rw,seclabel,nosuid,relatime,mode=755 0 0
+devpts /dev/pts devpts rw,seclabel,relatime,mode=600,ptmxmode=000 0 0
+none /dev/stune cgroup rw,nosuid,nodev,noexec,relatime,schedtune 0 0
+none /dev/cpuctl cgroup rw,nosuid,nodev,noexec,relatime,cpu 0 0
+none /dev/cpuset cgroup rw,nosuid,nodev,noexec,relatime,cpuset,noprefix,release_agent=/sbin/cpuset_release_agent 0 0
+cg2_bpf /dev/cg2_bpf cgroup2 rw,nosuid,nodev,noexec,relatime 0 0
+adb /dev/usb-ffs/adb functionfs rw,relatime 0 0
+proc /proc proc rw,relatime 0 0
+sysfs /sys sysfs rw,seclabel,relatime 0 0
+selinuxfs /sys/fs/selinux selinuxfs rw,relatime 0 0
+debugfs /sys/kernel/debug debugfs rw,seclabel,relatime 0 0
+tracefs /sys/kernel/debug/tracing tracefs rw,seclabel,relatime 0 0
+bpf /sys/fs/bpf bpf rw,nosuid,nodev,noexec,relatime 0 0
+pstore /sys/fs/pstore pstore rw,seclabel,nosuid,nodev,noexec,relatime 0 0
+tmpfs /mnt tmpfs rw,seclabel,nosuid,nodev,noexec,relatime,mode=755,gid=1000 0 0
+/dev/block/platform/bootdevice/by-name/protect1 /mnt/vendor/protect_f ext4 rw,seclabel,nosuid,nodev,noatime,nodelalloc,noauto_da_alloc,commit=1,data=ordered 0 0
+/dev/block/platform/bootdevice/by-name/protect2 /mnt/vendor/protect_s ext4 rw,seclabel,nosuid,nodev,noatime,nodelalloc,noauto_da_alloc,commit=1,data=ordered 0 0
+/dev/block/platform/bootdevice/by-name/nvdata /mnt/vendor/nvdata ext4 rw,seclabel,nosuid,nodev,noatime,nodelalloc,noauto_da_alloc,commit=1,data=ordered 0 0
+/dev/block/platform/bootdevice/by-name/nvcfg /mnt/vendor/nvcfg ext4 rw,seclabel,nosuid,nodev,noatime,nodelalloc,noauto_da_alloc,commit=1,data=ordered 0 0
+/dev/block/platform/bootdevice/by-name/persist /mnt/vendor/persist ext4 rw,seclabel,nosuid,nodev,noatime,nodelalloc,noauto_da_alloc,commit=1,data=ordered 0 0
+/data/media /mnt/runtime/default/emulated sdcardfs rw,nosuid,nodev,noexec,noatime,fsuid=1023,fsgid=1023,gid=1015,multiuser,mask=6,derive_gid,default_normal,reserved=50MB 0 0
+/data/media /mnt/runtime/read/emulated sdcardfs rw,nosuid,nodev,noexec,noatime,fsuid=1023,fsgid=1023,gid=9997,multiuser,mask=23,derive_gid,default_normal,reserved=50MB 0 0
+/data/media /mnt/runtime/write/emulated sdcardfs rw,nosuid,nodev,noexec,noatime,fsuid=1023,fsgid=1023,gid=9997,multiuser,mask=7,derive_gid,default_normal,reserved=50MB 0 0
+/dev/block/dm-1 /vendor ext4 ro,seclabel,relatime,block_validity,delalloc,barrier,user_xattr 0 0
+none /acct cgroup rw,nosuid,nodev,noexec,relatime,cpuacct 0 0
+none /config configfs rw,nosuid,nodev,noexec,relatime 0 0
+/dev/block/platform/bootdevice/by-name/cache /cache ext4 rw,seclabel,nosuid,nodev,noatime,discard,noauto_da_alloc,data=ordered 0 0
+/dev/block/platform/bootdevice/by-name/tranfs /tranfs ext4 rw,seclabel,nosuid,nodev,noatime,discard,noauto_da_alloc,data=ordered 0 0
+/dev/block/dm-2 /data f2fs rw,lazytime,seclabel,nosuid,nodev,noatime,background_gc=on,discard,no_heap,user_xattr,inline_xattr,acl,inline_data,inline_dentry,extent_cache,mode=adaptive,active_logs=6,alloc_mode=default,fsync_mode=posix 0 0
+tmpfs /storage tmpfs rw,seclabel,nosuid,nodev,noexec,relatime,mode=755,gid=1000 0 0
+/data/media /storage/emulated sdcardfs rw,nosuid,nodev,noexec,noatime,fsuid=1023,fsgid=1023,gid=9997,multiuser,mask=7,derive_gid,default_normal,reserved=50MB 0 0
+tmpfs /storage/self tmpfs rw,seclabel,nosuid,nodev,noexec,relatime,mode=755,gid=1000 0 0
+
+===== DISPLAY =====
+No command wm found, did you mean:
+ Command rm in package coreutils
+ Command dwm in package dwm from the x11-repo repository
+ Command fm in package fm
+ Command gm in package graphicsmagick
+ Command jwm in package jwm from the x11-repo repository
+ Command nm in package llvm
+ Command mwm in package motif from the x11-repo repository
+ Command am in package termux-am
+ Command pm in package termux-tools
+ Command w3m in package w3m
+ Command wg in package wireguard-tools
+ Command twm in package xorg-twm from the x11-repo repository
+No command wm found, did you mean:
+ Command rm in package coreutils
+ Command dwm in package dwm from the x11-repo repository
+ Command fm in package fm
+ Command gm in package graphicsmagick
+ Command jwm in package jwm from the x11-repo repository
+ Command nm in package llvm
+ Command mwm in package motif from the x11-repo repository
+ Command am in package termux-am
+ Command pm in package termux-tools
+ Command w3m in package w3m
+ Command wg in package wireguard-tools
+ Command twm in package xorg-twm from the x11-repo repository
+
+===== KERNEL CONFIG =====
+gzip: /proc/config.gz: Permission denied
+
+===== CMDLINE =====
+cat: /proc/cmdline: Permission denied
+
+===== MEMORY =====
+MemTotal:        3866728 kB
+MemFree:           35064 kB
+MemAvailable:     816112 kB
+Buffers:             480 kB
+Cached:           799224 kB
+SwapCached:         7828 kB
+Active:          1717728 kB
+Inactive:         831748 kB
+Active(anon):    1326612 kB
+Inactive(anon):   442428 kB
+Active(file):     391116 kB
+Inactive(file):   389320 kB
+Unevictable:        5516 kB
+Mlocked:            5516 kB
+SwapTotal:       1933360 kB
+SwapFree:         402328 kB
+Dirty:                92 kB
+Writeback:             0 kB
+AnonPages:       1750476 kB
+Mapped:           644512 kB
+Shmem:             14260 kB
+Slab:             208384 kB
+SReclaimable:      81612 kB
+SUnreclaim:       126772 kB
+KernelStack:       42960 kB
+PageTables:        73520 kB
+NFS_Unstable:          0 kB
+Bounce:                0 kB
+WritebackTmp:          0 kB
+CommitLimit:     3866724 kB
+Committed_AS:   78870028 kB
+VmallocTotal:   263061440 kB
+VmallocUsed:           0 kB
+VmallocChunk:          0 kB
+CmaTotal:              0 kB
+CmaFree:               0 kB
+
+===== STORAGE =====
+Filesystem                                   Size  Used Avail Use% Mounted on
+/dev/root                                    3.8G  3.2G  653M  84% /
+tmpfs                                        1.8G  1.4M  1.8G   1% /dev
+tmpfs                                        1.8G     0  1.8G   0% /mnt
+/dev/block/dm-1                              674M  359M  301M  55% /vendor
+/dev/block/platform/bootdevice/by-name/cache 275M  4.1M  261M   2% /cache
+/dev/block/dm-2                               52G   26G   26G  51% /data
+/data/media                                   52G   26G   26G  51% /storage/emulated
+
+===== MTD =====
+cat: /proc/mtd: No such file or directory
+
+===== SENSORS =====
+No command dumpsys found, did you mean:
+ Command dcmpsmk in package dcmtk
+ Command dumpe2fs in package e2fsprogs
+ Command dumpsexp in package libgcrypt
+ Command dumpelf in package pax-utils
+ Command dumpcap in package tshark from the root-repo repository
+ Command dumpcap in package wireshark-qt from the x11-repo repository
+
+===== LSMOD =====
+No command lsmod found, did you mean:
+ Command lsmtd in package mtd-utils
+
+===== BOOTLOADER =====
+
+mt6765
+1
+
+===== PACKAGES =====
+cmd: Failure calling service package: Failed transaction (2147483646)
