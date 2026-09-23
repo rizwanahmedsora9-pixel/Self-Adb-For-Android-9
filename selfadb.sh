@@ -50,6 +50,16 @@ die()  { err "$*"; exit 1; }
 hr() { printf '%s\n' "${DIM}-----------------------------------------------------------${N}"; }
 
 have() { command -v "$1" >/dev/null 2>&1; }
+
+sys_bin() { # sys_bin NAME -> absolute path of an Android system binary, "" if absent
+  local p
+  p="$(command -v "$1" 2>/dev/null)"
+  if [ -n "$p" ]; then printf '%s' "$p"; return 0; fi
+  for p in "/system/bin/$1" "/system/xbin/$1" "/vendor/bin/$1"; do
+    [ -x "$p" ] && { printf '%s' "$p"; return 0; }
+  done
+  return 1
+}
 is_termux() { [ -d /data/data/com.termux/files/usr ] || [ -n "${TERMUX_VERSION:-}" ]; }
 prefix_dir() { printf '%s' "${PREFIX:-/usr}"; }
 
@@ -662,6 +672,89 @@ cmd_boot_remove() {
   ok "removed boot script and widget shortcut"
 }
 
+cmd_rom_probe() { # look for an on-device ADB-over-network switch (no root needed)
+  say "${BOLD}ROM probe${N} -- is there any way to enable adb-over-network without a PC?"
+  say "Read-only: this only queries properties and settings, it changes nothing."
+  hr
+
+  # 1) adb-related system properties
+  say "${BOLD}1) properties mentioning 'adb'${N}"
+  if have getprop; then
+    local adbprops
+    adbprops="$(getprop 2>/dev/null | grep -i 'adb' | tr -d '\r')"
+    if [ -n "$adbprops" ]; then printf '%s\n' "$adbprops" | sed 's/^/    /'
+    else say "    (none)"; fi
+  else
+    warn "    getprop not available -- run this inside Termux on the phone"
+  fi
+
+  # 2) settings tables: hunt for network/wireless adb keys
+  say ""
+  say "${BOLD}2) settings keys mentioning adb / wireless debugging / tcp${N}"
+  local settings_bin tbl out hits key val
+  settings_bin="$(sys_bin settings || true)"
+  local candidates=""
+  for tbl in global secure system; do
+    if [ -z "$settings_bin" ]; then
+      warn "    'settings' command not found"
+      break
+    fi
+    out="$("$settings_bin" list "$tbl" 2>&1 | tr -d '\r')"
+    if printf '%s' "$out" | grep -qi 'SecurityException\|Permission Denial\|Unknown command'; then
+      warn "    cannot read '${tbl}' settings ($(printf '%s' "$out" | head -n1))"
+      continue
+    fi
+    hits="$(printf '%s\n' "$out" | grep -iE '(^|[^a-z])(adb|wireless_debug|wifi_debug|network_adb|adb_tcp|adbd)' | sed 's/^/    /')"
+    if [ -n "$hits" ]; then
+      say "    ${DIM}${tbl}:${N}"
+      printf '%s\n' "$hits"
+      candidates="${candidates}$(printf '%s\n' "$hits" | sed 's/^    //') 
+"
+    else
+      say "    ${DIM}${tbl}: nothing adb-related${N}"
+    fi
+  done
+
+  # 3) verdict
+  say ""
+  hr
+  local tp pp
+  tp="$(adbd_tcp_port)"
+  pp="$(adbd_persist_port)"
+  local verdict="pc"
+  if [ -n "$pp" ]; then
+    verdict="free"
+    ok "VERDICT: this ROM keeps TCP mode across reboots."
+    say "    persist.adb.tcp.port = ${pp}  ->  after a reboot just: selfadb.sh connect"
+  elif printf '%s' "$candidates" | grep -qiE 'wireless_debug|wifi_debug|network_adb|adb_wifi'; then
+    verdict="maybe"
+    ok "VERDICT: this ROM has an Android-11-style wireless-debugging setting!"
+    say "    Found:"
+    printf '%s\n' "$candidates" | grep -iE 'wireless_debug|wifi_debug|network_adb|adb_wifi' | sed 's/^/      /'
+    say "    Look in Settings > Developer options for 'Wireless debugging' / 'ADB over network'."
+    say "    If it is there and toggleable, you never need a PC again."
+  else
+    warn "VERDICT: no on-device switch found -- PC step needed once per reboot."
+  fi
+  [ -n "$tp" ] && info "currently: service.adb.tcp.port = ${tp} (TCP mode live right now)"
+  [ -z "$tp" ] && warn "currently: adbd is USB-only (service.adb.tcp.port empty)"
+
+  # 4) what to look for by hand
+  say ""
+  say "${BOLD}Also check by hand (10 seconds, XOS hides things)${N}"
+  say "    Settings > System > Developer options, scroll and look for any of:"
+  say "      'ADB over network'  'Network ADB'  'Wireless ADB'  'ADB over Wi-Fi'"
+  say "      'Wi-Fi debugging'   'Wireless debugging'  'Debug over network'"
+  say "    If you find one: switch it ON, then in Termux run  selfadb.sh connect"
+  say "    If it works across a reboot -> tell me, we can drop the PC step entirely."
+  say ""
+  say "    ${DIM}(XOS/Infinix builds usually strip this on Android 9, but some MediaTek ROMs keep it.)${N}"
+  case "$verdict" in
+    free|maybe) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 cmd_unlock_probe() { # honesty probe: can this (non-root) device flip TCP mode itself?
   say "trying to set service.adb.tcp.port from Termux (expected: denied on retail Android 9)"
   if ! have setprop && [ ! -x /system/bin/setprop ]; then
@@ -710,6 +803,7 @@ ${BOLD}KEEP IT ALIVE / AUTOMATION${N}
   watch [--interval N]  loop: keep alive + auto-reconnect (use with wake lock)
   boot-install          auto-connect at boot via Termux:Boot + widget shortcut
   boot-remove           undo the above
+  rom-probe             hunt for an on-device adb-over-network switch (may save the PC step)
   unlock                probe whether this ROM allows a no-PC enable (usually no)
 
 ${BOLD}OPTIONS${N}
@@ -767,6 +861,7 @@ cmd_quick() { # no arguments: friendly summary + next best action
     warn "adbd is USB-only, so there is nothing to connect to yet."
     info "next:  ${BOLD}bash selfadb.sh one-time${N}  (60 s with any PC) then ${BOLD}connect${N}"
     say  "       ${DIM}check first: bash selfadb.sh doctor${N}"
+    say  "       ${DIM}or look for a hidden on-device switch: bash selfadb.sh rom-probe${N}"
   fi
 }
 
@@ -791,6 +886,7 @@ main() {
     shizuku)              cmd_shizuku ;;
     boot-install|boot)    cmd_boot_install ;;
     boot-remove)          cmd_boot_remove ;;
+    rom-probe|romprobe|hidden) cmd_rom_probe ;;
     unlock|probe)         cmd_unlock_probe ;;
     disconnect|down)      cmd_disconnect ;;
     version|-v|--version) say "selfadb ${VERSION}" ;;

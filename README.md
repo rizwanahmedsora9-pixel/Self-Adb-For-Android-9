@@ -125,12 +125,58 @@ everywhere), toggle USB debugging off/on, choose MTP, or reinstall the OEM USB d
 | `selfadb.sh watch` | auto-reconnect loop; survives Wi-Fi drops, sleeps, Doze |
 | `selfadb.sh boot-install` | Termux:Boot script + Termux:Widget one-tap shortcut |
 | `selfadb.sh shizuku` | launches Shizuku via this adb connection (gives apps ADB powers, still no root) |
+| `selfadb.sh rom-probe` | read-only hunt for a hidden on-device network-ADB switch; verdict on whether you ever need the PC again |
 | `selfadb.sh unlock` | probes whether your ROM is loose enough to enable TCP mode without a PC (usually: no) |
 | `selfadb.sh disconnect` | drops the network connection |
 | `selfadb.sh help` | all of the above, on the device |
 
 Options: `--port N` (or `SELFADB_PORT`), `--restart` (kill + restart the Termux-side
 server), `-q/--quiet`, `NO_COLOR=1`, `SELFADB_INTERVAL=N` (watch poll seconds).
+
+---
+
+## "Do I need the PC again?" — what survives a reboot
+
+**Yes for a reboot, no for anything else.** This is the single most common question, so
+here is the exact matrix:
+
+| What happened | PC needed again? | Why |
+|---|---|---|
+| **Full reboot** / power off / battery died / OTA update / crash | **YES** — ~60 s with any computer | `service.adb.tcp.port` lives in RAM only; at boot `init` starts `adbd` in USB-only mode. Making it stick needs `persist.adb.tcp.port`, which only root/`init` may write on a user build. |
+| Wi-Fi off/on, new router, new IP, hotspot, mobile hotspot | No | `selfadb.sh connect` re-finds adbd on the new address |
+| Termux app closed, killed by XOS, phone memory cleaned | No | adbd is still in TCP mode; just `selfadb.sh connect` again |
+| `adb kill-server` (Termux side) | No | the phone's daemon was never touched |
+| Screen lock, Doze, battery saver, phone idle for hours | No | `selfadb.sh watch` + battery "Unrestricted" keeps it alive |
+| Airplane mode toggle | No (usually) | adbd re-binds when Wi-Fi returns; the tool reconnects |
+| `selfadb.sh tcpip` while already connected | No | re-arms TCP mode over the live connection |
+| Soft reboot / `adb reboot` | **YES** | same as a full reboot for adbd |
+
+### The two ways to never need the PC again
+
+Both are rare on Android 9, both are checkable on *your* phone in 10 seconds:
+
+```bash
+selfadb.sh rom-probe      # read-only: hunts for an on-device switch, prints a verdict
+selfadb.sh doctor         # shows persist.adb.tcp.port if your ROM happens to set it
+```
+
+1. **`persist.adb.tcp.port` is set** (some engineering/vendor/serviced builds) → adbd comes
+   up in TCP mode by itself at every boot. `rom-probe` will say *"this ROM keeps TCP mode
+   across reboots"*. Nothing left to do, ever.
+2. **Your ROM kept an "ADB over network" / "Wireless debugging" toggle** in Developer
+   options (MediaTek ROMs sometimes do even on Android 9) → flip it on and you are done for
+   good. `rom-probe` lists any wireless-debug settings keys it finds; also just scroll
+   Developer options by hand and look for:
+   `ADB over network`, `Network ADB`, `Wireless ADB`, `ADB over Wi-Fi`, `Wi-Fi debugging`,
+   `Wireless debugging`, `Debug over network`.
+
+If `rom-probe` says *"no on-device switch found"* (most likely on stock XOS 5.0), then it is
+**PC once per reboot** — that is the Android 9 design, and nothing below root can change it.
+
+> Practical tip: the one-time step needs *any* computer with a USB data cable and adb — a
+> friend's laptop, a cyber-café PC, a cheap Windows stick or a Raspberry Pi all work. Keep
+> the cable in your bag and the step takes under a minute. Also avoid unnecessary reboots:
+> a phone that stays powered stays connected indefinitely.
 
 ---
 
@@ -195,6 +241,8 @@ because Termux *is* the ADB host and the phone is the device.
 | `Permission denied` / settings changes do nothing | Turn on **USB debugging (Security settings)** on Infinix/XOS, then reconnect |
 | Port 5555 already used | `selfadb.sh tcpip 5038` while connected, then `selfadb.sh connect --port 5038` |
 | Adb works but stops the moment you lock the screen | `selfadb.sh keepawake` + battery unrestricted for Termux |
+| Everything worked yesterday, nothing today | Did the phone reboot or power off? `selfadb.sh rom-probe`, then redo the one-time step |
+| Do I have to redo this after every reboot? | Yes on stock Android 9 — see the reboot matrix above; `rom-probe` finds the two rare exceptions |
 | `selfadb.sh` says command not found after `setup` | Open a new Termux session, or run `bash selfadb.sh …` from the repo folder |
 
 ### Security note
@@ -212,7 +260,7 @@ text scripts you can read.
 
 | File | Purpose |
 |---|---|
-| `selfadb.sh` | the whole tool (bash, ~800 lines, no dependencies beyond `adb`, optional `python3` for the fast LAN scan) |
+| `selfadb.sh` | the whole tool (bash, ~890 lines, no dependencies beyond `adb`, optional `python3` for the fast LAN scan) |
 | `README.md` | this guide |
 
 ---
@@ -222,8 +270,10 @@ text scripts you can read.
 Every code path was exercised against a **mock `adb` client** (connect succeeds / refuses /
 returns `unauthorized` / drops mid-session), with simulated `getprop` values for
 *USB-only*, *TCP mode*, and *`persist.adb.tcp.port` set* phones, plus the LAN-scan and
-custom-port paths, the watch/reconnect loop, generated boot + widget scripts and the
-argument pass-through (`install -r -g`, `shell`, `tcpip`). It has **not** been run on a
+custom-port paths, the watch/reconnect loop, generated boot + widget scripts, the
+argument pass-through (`install -r -g`, `shell`, `tcpip`) and all four `rom-probe`
+outcomes (no switch found / wireless-debug keys present / `persist.adb.tcp.port` set /
+settings unreadable). It has **not** been run on a
 physical X650C — when you run `selfadb.sh doctor` on your phone, that output is the real
 status of your device, and `one-time` / `doctor` are written to tell you exactly what to
 do from there.
