@@ -1,0 +1,1 @@
+console=tty0 console=ttyMT0,921600n1 root=/dev/ram vmalloc=496M androidboot.hardware=mt6761 androidboot.veritymode=enforcing lcm=nt36672a_hd720_dsi_vdo_ili9881c

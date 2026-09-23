@@ -1,0 +1,3 @@
+mmcblk0
+mmcblk0boot0
+mmcblk1

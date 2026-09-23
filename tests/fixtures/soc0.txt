@@ -1,0 +1,4 @@
+family=
+soc_id=
+machine=MT6761
+revision=

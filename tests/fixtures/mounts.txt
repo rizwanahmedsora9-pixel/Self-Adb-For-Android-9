@@ -1,0 +1,4 @@
+/dev/root / ext4 ro,seclabel,relatime 0 0
+tmpfs /dev tmpfs rw,seclabel,nosuid,relatime,size=940824k 0 0
+/dev/block/mmcblk0p4 /data ext4 rw,seclabel,nosuid,nodev,noatime 0 0
+/dev/block/mmcblk0p2 /vendor ext4 ro,seclabel,relatime 0 0

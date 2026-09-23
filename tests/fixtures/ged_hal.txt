@@ -1,0 +1,2 @@
+custom_boost_gpu_freq
+gpu_boost_status

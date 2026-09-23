@@ -1,0 +1,7 @@
+[ro.product.board]: [mt6761]
+[ro.board.platform]: [mt6761]
+[ro.hardware]: [mt6761]
+[ro.mediatek.platform]: [MT6761]
+[ro.treble.enabled]: [true]
+[ro.vndk.version]: [28]
+[ro.boot.slot_suffix]: []

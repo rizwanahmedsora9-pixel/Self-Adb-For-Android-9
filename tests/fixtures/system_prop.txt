@@ -1,0 +1,2 @@
+ro.build.version.release=9
+ro.board.platform=mt6761

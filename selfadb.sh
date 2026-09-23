@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 #  selfadb.sh  --  Use ADB on your OWN phone, from inside Termux.
+  Android 9: one 60 s PC step per boot. Android 11+: 'pair' + 'wireless', no PC at all.
 #
 #  No root. No Magisk. No Xposed. No custom kernel.
 #
@@ -672,6 +673,57 @@ cmd_boot_remove() {
   ok "removed boot script and widget shortcut"
 }
 
+cmd_pair() { # Android 11+: pair with the wireless-debugging dialog
+  need_adb
+  local host="${1:-}" code="${2:-}"
+  if [ -z "$host" ] || [ -z "$code" ]; then
+    err "usage: selfadb.sh pair <ip:port> <pairing-code>"
+    say "    Phone: Developer options > Wireless debugging > 'Pair device with pairing code'"
+    say "    That dialog shows  an IP:PORT  and a 6-digit code -- use both, e.g."
+    say "      selfadb.sh pair 192.168.1.42:37123 481920"
+    return 64
+  fi
+  start_server
+  info "pairing with $host ..."
+  local out; out="$(run_timeout 30 adb pair "$host" "$code" 2>&1 | tr -d '\r')"
+  printf '%s\n' "$out" | sed 's/^/    /'
+  case "$out" in
+    *"Successfully paired"*) ok "paired! now connect with:  selfadb.sh wireless"
+                             info "(the connect port is different from the pairing port -- it is shown"
+                             say " on the Wireless debugging screen; or just run 'selfadb.sh wireless' to auto-find it)" ;;
+    *) warn "pairing did not succeed -- code expires fast, reopen the dialog and retry" ;;
+  esac
+}
+
+cmd_wireless() { # Android 11+: connect to the wireless-debugging port (with mDNS discovery)
+  need_adb
+  local target="${1:-}"
+  start_server
+  if [ -n "$target" ]; then
+    case "$target" in *:*) : ;; *) target="${target}:5555" ;; esac
+    try_one "$target" && return 0
+    warn "could not connect to $target"
+    return 1
+  fi
+  # try to discover the Android 11+ connect port over mDNS
+  local disc host
+  info "looking for wireless-debugging services via mDNS ..."
+  disc="$(run_timeout 10 adb mdns services 2>/dev/null | tr -d '\r' | grep -i '_adb' || true)"
+  if [ -n "$disc" ]; then
+    printf '%s\n' "$disc" | sed 's/^/    /'
+    for host in $(printf '%s\n' "$disc" | awk '{print $NF}' | grep ':' | sort -u); do
+      try_one "$host" && return 0
+    done
+  fi
+  warn "no wireless-debugging service discovered"
+  say "    Phone: Developer options > Wireless debugging  (Android 11+) must be ON."
+  say "    Read the IP:port under 'Wireless debugging', then run:"
+  say "      selfadb.sh wireless 192.168.1.42:41234"
+  say "    If you have never paired this phone with Termux, pair first:"
+  say "      selfadb.sh pair <ip:port-from-the-pairing-dialog> <6-digit-code>"
+  return 1
+}
+
 cmd_rom_probe() { # look for an on-device ADB-over-network switch (no root needed)
   say "${BOLD}ROM probe${N} -- is there any way to enable adb-over-network without a PC?"
   say "Read-only: this only queries properties and settings, it changes nothing."
@@ -804,6 +856,8 @@ ${BOLD}KEEP IT ALIVE / AUTOMATION${N}
   boot-install          auto-connect at boot via Termux:Boot + widget shortcut
   boot-remove           undo the above
   rom-probe             hunt for an on-device adb-over-network switch (may save the PC step)
+  pair IP:PORT CODE     Android 11+: pair with the wireless-debugging dialog (no PC at all)
+  wireless [IP:PORT]    Android 11+: connect to wireless debugging (auto-discovers via mDNS)
   unlock                probe whether this ROM allows a no-PC enable (usually no)
 
 ${BOLD}OPTIONS${N}
@@ -886,6 +940,8 @@ main() {
     shizuku)              cmd_shizuku ;;
     boot-install|boot)    cmd_boot_install ;;
     boot-remove)          cmd_boot_remove ;;
+    pair)                 cmd_pair "$@" ;;
+    wireless|wifi)        cmd_wireless "$@" ;;
     rom-probe|romprobe|hidden) cmd_rom_probe ;;
     unlock|probe)         cmd_unlock_probe ;;
     disconnect|down)      cmd_disconnect ;;

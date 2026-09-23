@@ -1,0 +1,8 @@
+*********** Part Size List Information ***********
+Part_Name    Size        StartAddr   Type  MapTo
+preloader    0x0000000000040000   0x0000000000000000   2   /dev/misc-sd
+mbr          0x0000000000080000   0x0000000000000000   2   /dev/block/mmcblk0
+pgpt         0x0000000000000000   0x0000000000000000   0   /dev/block/mmcblk0
+boot         0x0000000001000000   0x0000000003800000   2   /dev/block/mmcblk0p20
+system       0x000000000C000000   0x0000000000000000   2   /dev/block/mmcblk0p27
+Total_Size:   0x00000001D2000000

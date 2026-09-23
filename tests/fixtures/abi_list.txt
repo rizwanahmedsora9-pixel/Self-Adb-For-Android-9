@@ -1,0 +1,4 @@
+armeabi-v7a,armeabi
+armeabi-v7a,armeabi
+
+armeabi-v7a

@@ -125,6 +125,8 @@ everywhere), toggle USB debugging off/on, choose MTP, or reinstall the OEM USB d
 | `selfadb.sh watch` | auto-reconnect loop; survives Wi-Fi drops, sleeps, Doze |
 | `selfadb.sh boot-install` | Termux:Boot script + Termux:Widget one-tap shortcut |
 | `selfadb.sh shizuku` | launches Shizuku via this adb connection (gives apps ADB powers, still no root) |
+| `selfadb.sh pair IP:PORT CODE` | **Android 11+**: pair with the wireless-debugging dialog — no PC at all |
+| `selfadb.sh wireless [IP:PORT]` | **Android 11+**: connect to wireless debugging (mDNS auto-discovery) |
 | `selfadb.sh rom-probe` | read-only hunt for a hidden on-device network-ADB switch; verdict on whether you ever need the PC again |
 | `selfadb.sh unlock` | probes whether your ROM is loose enough to enable TCP mode without a PC (usually: no) |
 | `selfadb.sh disconnect` | drops the network connection |
@@ -177,6 +179,103 @@ If `rom-probe` says *"no on-device switch found"* (most likely on stock XOS 5.0)
 > friend's laptop, a cyber-café PC, a cheap Windows stick or a Raspberry Pi all work. Keep
 > the cable in your bag and the step takes under a minute. Also avoid unnecessary reboots:
 > a phone that stays powered stays connected indefinitely.
+
+---
+
+## Would installing Android 11 fix the "PC every reboot" problem?
+
+**Yes — that is the one real fix, and it is why people put a custom ROM/GSI on this phone.**
+Android 11 introduced **Wireless debugging with pairing**: the phone itself starts listening
+and shows you a pairing code, so Termux pairs with it directly. No PC, no cable, ever again.
+
+```bash
+selfadb.sh pair 192.168.1.42:37123 481920   # ip:port + 6-digit code from the phone dialog
+selfadb.sh wireless                          # connects (auto-discovers the port via mDNS)
+```
+
+The catch: your X650C ships Android 9 and Infinix never released 11 for it. To get Android 11
+you must **flash a custom ROM or a GSI** (Generic System Image) yourself.
+
+### What the X650C community has proven (so you don't learn it the hard way)
+
+| Fact | Detail |
+|---|---|
+| Bootloader | unlockable: `fastboot flashing unlock` (enable *OEM unlocking* first; **wipes all data**) |
+| Chipset | MT6761 Helio A22 (2/32 GB) or MT6762 Helio P22 (4/64 GB), PowerVR GE8320 — MediaTek |
+| Method that works | GSI: format `system-<arch>-<scheme>-<flavour>.img` |
+| Your arch/scheme | **`arm32_binder64`** (64-bit kernel, 32-bit userspace) + **A-only** — `amsrom.sh` detects this for you |
+| Most stable build reported | DOT OS 5.2 (Android 11 era); Android 12 GSIs boot too |
+| Broken on Android 12 GSIs | Wi-Fi hotspot, USB tethering, Bluetooth tethering |
+| VoLTE / mobile data | needs an IMS APK installed afterwards |
+| Mandatory step | `fastboot --disable-verity --disable-verification flash vbmeta vbmeta.img`, or you get a boot loop |
+| Keep handy | stock firmware + scatter file + SP Flash Tool (MTK unbrick path), and a dump of `nvram`/IMEI |
+
+**Risks, honestly:** unlocking wipes the phone and shows the "orange state" warning; Play
+Integrity/Widevine L1 break; a bad flash can brick an MTK device (that is why the unbrick
+files matter); and after flashing you own the bugs — no Infinix support. It is a weekend
+project, not a 10-minute tweak.
+
+**Recommendation:** keep Android 9 + `selfadb.sh` for daily use (one PC step per reboot,
+everything else is on-device), and only go the GSI route if you specifically want Android 11+
+features — wireless debugging without a PC, newer apps, security patches.
+
+---
+
+## AMS ROM — hardware analysis + custom-ROM project generator
+
+`amsrom.sh` answers "what exactly is inside my phone, and what would a ROM for it need?"
+It reads your device with read-only commands, analyses the result, and writes a ready-to-fill
+project folder:
+
+```bash
+# on the phone (no PC needed):
+bash amsrom.sh all --dir "AMS ROM"
+
+# or with a live adb connection, which adds the deep dumps a device tree needs:
+bash selfadb.sh connect && bash amsrom.sh all --serial 127.0.0.1:5555 --dir "AMS ROM"
+
+bash amsrom.sh info          # quick summary of the last analysis
+```
+
+### What it creates
+
+```
+AMS ROM/
+├── README.md                  analysis summary + roadmap + warnings
+├── hardware/
+│   ├── report.md              human-readable analysis of YOUR device
+│   ├── profile.json           the same data, machine-readable
+│   ├── facts.kv               flat key=value facts the scripts use
+│   └── raw/*.txt              every raw dump (36 files in deep mode), untouched
+├── device/<vendor>/<codename>/  AOSP-style device tree skeleton
+│   ├── BoardConfig.mk         arch, platform, kernel cmdline, partitions (TODO-marked)
+│   ├── device.mk · AndroidProducts.mk · ams_<codename>.mk · vendorsetup.sh
+├── gsi/
+│   ├── candidates.md          which GSI images match YOUR arch/scheme + known bugs
+│   └── flash-gsi.sh           flashing helper — DRY RUN unless you pass the confirm flag
+├── build/build-rom.sh         source-build wrapper (naming skeleton)
+└── backups/README.md          what to save BEFORE unlocking/flashing
+```
+
+### What it extracts
+
+Identity (brand/model/codename/build/fingerprint), SoC family and marketing name
+(MT6761 = Helio A22, MT6762 = Helio P22), CPU cores, ABI list, kernel version and machine
+(aarch64 vs armv7), RAM, storage, display size/density, GPU renderer, camera and sensor
+counts, the full partition table (including `nvram`, `preloader`, `vbmeta`, `md1img`),
+A-only vs A/B, dynamic partitions, system-as-root, verified-boot/verity state, SELinux mode,
+Treble + VNDK availability and the HAL inventory — plus every raw dump for proof.
+
+From that it derives the three things a port actually needs: **arch class for GSI**
+(`arm64` / `arm32_binder64` / `arm`), **partition scheme** (`aonly` / `ab`), and a
+**verdict** — GSI route (fast, mostly works) vs source-port route (weeks of kernel work).
+
+**It never writes to your phone.** The only script that can write is `gsi/flash-gsi.sh`, and
+it prints a plan and refuses to act without `--yes-i-know-i-can-brick`; it will not touch
+`preloader`, `lk`, `tee`, `md1img` or `modem` under any circumstances.
+
+See `docs/sample-report.md` for a real generated report (from the X650C profile used in the
+test suite).
 
 ---
 

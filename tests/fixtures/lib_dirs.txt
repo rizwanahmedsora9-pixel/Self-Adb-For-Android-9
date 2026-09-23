@@ -1,0 +1,2 @@
+libandroid.so
+libc.so

@@ -1,0 +1,3 @@
+lrwxrwxrwx ... recovery -> /dev/block/mmcblk0p19
+lrwxrwxrwx ... vbmeta -> /dev/block/mmcblk0p18
+lrwxrwxrwx ... misc -> /dev/block/mmcblk0p14

@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+"""Fixture-driven mock of the adb client, used by tests/run-tests.sh.
+
+It answers the exact shell commands amsrom.sh / selfadb.sh send, with canned
+output captured for an Infinix Hot 8 (X650C, MT6761, Android 9, XOS 5.0).
+Fixtures live in ../fixtures relative to this file.
+"""
+import os
+import re
+import sys
+
+FX = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "fixtures")
+SERIAL = "127.0.0.1:5555"
+
+argv = sys.argv[1:]
+if argv and argv[0] == "-s":
+    argv = argv[2:]
+if not argv:
+    sys.exit(1)
+cmd = argv[0]
+
+if cmd == "version":
+    print("Android Debug Bridge version 1.0.41"); sys.exit(0)
+if cmd == "devices":
+    print("List of devices attached")
+    print("%s\tdevice product:X650C model:Infinix_HOT_8 device:X650C" % SERIAL)
+    sys.exit(0)
+if cmd in ("start-server", "kill-server", "wait-for-device"):
+    print("* daemon started successfully"); sys.exit(0)
+if cmd == "connect":
+    print("connected to %s" % (argv[1] if len(argv) > 1 else SERIAL)); sys.exit(0)
+if cmd == "pair":
+    print("Successfully paired to %s" % (argv[1] if len(argv) > 1 else "host")); sys.exit(0)
+if cmd == "mdns":
+    print("List of discovered mdns services")
+    print("adb-XXXX\t_adb-tls-connect._tcp\t%s" % SERIAL)
+    sys.exit(0)
+if cmd == "get-state":
+    print("device"); sys.exit(0)
+if cmd == "tcpip":
+    print("restarting in TCP mode port: %s" % (argv[1] if len(argv) > 1 else "5555")); sys.exit(0)
+if cmd == "install":
+    print("Performing Streamed Install"); print("Success"); sys.exit(0)
+if cmd != "shell":
+    sys.exit(0)
+
+sh = re.sub(r"\s+", " ", " ".join(argv[1:])).strip()
+
+# trivial shell emulation so passthrough can be asserted
+m = re.match(r"^echo (.*)$", sh)
+if m:
+    print(m.group(1).strip("'\""))
+    sys.exit(0)
+
+def serve(*files):
+    for f in files:
+        p = os.path.join(FX, f)
+        if os.path.exists(p):
+            sys.stdout.write(open(p, encoding="utf-8", errors="replace").read())
+
+RULES = [
+    (r"^getprop \| grep", ["treble_props.txt"]),
+    (r"^getprop$", ["getprop.txt"]),
+    (r"/proc/cpuinfo", ["cpuinfo.txt"]),
+    (r"/proc/meminfo", ["meminfo.txt"]),
+    (r"/proc/version", ["version.txt"]),
+    (r"/proc/cmdline", ["cmdline.txt"]),
+    (r"/proc/partitions", ["partitions.txt"]),
+    (r"/proc/mounts", ["mounts.txt"]),
+    (r"df -h", ["df.txt"]),
+    (r"/dev/block/by-name", ["byname.txt"]),
+    (r"/dev/block/platform", ["byname.txt"]),
+    (r"/proc/bus/input", ["input_devices.txt"]),
+    (r"thermal_zone", ["thermal.txt"]),
+    (r"cpufreq/cpuinfo_max_freq", ["cpu_freq.txt"]),
+    (r"/sys/kernel/ged", ["ged_hal.txt"]),
+    (r"/sys/devices/soc0", ["soc0.txt"]),
+    (r"ls /sys/block", ["mem_blocks.txt"]),
+    (r"dumchar_info", ["mtk_dumchar.txt"]),
+    (r"/proc/emmc", ["mtk_dumchar.txt"]),
+    (r"fstab", ["fstab.txt"]),
+    (r"/vendor/build.prop", ["vendor_prop.txt"]),
+    (r"/system/build.prop", ["system_prop.txt"]),
+    (r"wm size", ["prefs_display.txt"]),
+    (r"SurfaceFlinger", ["gpu.txt"]),
+    (r"media.camera", ["camera.txt"]),
+    (r"sensorservice", ["sensors.txt"]),
+    (r"/lib64/hw|/lib/hw", ["hal_files.txt"]),
+    (r"/system/etc/permissions", ["treble_perm.txt"]),
+    (r"dumpsys battery", ["battery.txt"]),
+    (r"verifiedbootstate", ["bootchain.txt"]),
+    (r"getenforce", ["selinux.txt"]),
+    (r"/proc/config.gz", ["kernel_cfg.txt"]),
+    (r"pm list packages", ["pkg_count.txt"]),
+    (r"abilist", ["abi_list.txt"]),
+    (r"ls /system/lib", ["lib_dirs.txt"]),
+    (r"by-name .*recovery|recovery|misc|vbmeta", ["recovery_misc.txt"]),
+]
+for pat, files in RULES:
+    if re.search(pat, sh):
+        serve(*files); sys.exit(0)
+sys.exit(1)
